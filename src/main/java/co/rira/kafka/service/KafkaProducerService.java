@@ -1,16 +1,18 @@
 package co.rira.kafka.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class KafkaPublisherService {
+public class KafkaProducerService {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    String kafkaTopic = "java_in_use_topic";
+    String kafkaTopic = "events";
 
-    public KafkaPublisherService(KafkaTemplate<String, String> kafkaTemplate) {
+    @Autowired
+    public KafkaProducerService(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
