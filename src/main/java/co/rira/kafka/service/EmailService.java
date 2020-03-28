@@ -7,11 +7,13 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.util.List;
 
 /**
@@ -33,16 +35,17 @@ public class EmailService implements NotifierService {
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
-
+    
     /**
-     * Sends email to the user
+     * Sends a notification details to the user
      *
-     * @param message email content
+     * @param notification the notification
      * @throws MessagingException if cannot send
      */
+    @Override
     @Async
-    public void notifyUser(String message) throws MessagingException {
-        /*
+    public void notifyUser(User targetUser, Notification notification) throws MessagingException {
+        String notifiedEmailAddress = targetUser.getEmailAddress();
         log.debug("Started sending email to the : {}", notifiedEmailAddress);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
@@ -53,8 +56,12 @@ public class EmailService implements NotifierService {
                 "<body dir=\"ltr\">\n" +
                 "    <div>\n" +
                 "            <h3>\n" +
-                message +
+                notification.getTextMessage() +
                 "            </h3>\n" +
+                "    </div>\n" +
+                "            <h4>\n" +
+                notification.getDescription() +
+                "            </h4>\n" +
                 "    </div>\n" +
                 "\n" +
                 "\n" +
@@ -62,16 +69,9 @@ public class EmailService implements NotifierService {
                 "\n" +
                 "</html>";
         helper.setText(text, true);
-        helper.setSubject("OpenNMS Alert");
+        helper.setSubject(notification.getName());
         mailSender.send(mimeMessage);
         log.debug("An email was sent to the {} successfully", notifiedEmailAddress);
-         */
-    }
-
-    @Override
-    @Async
-    public void notifyUser(User targetUser, Notification notification) throws MessagingException {
-        //todo
     }
 
     @Override
