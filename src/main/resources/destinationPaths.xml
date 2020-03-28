@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<destinationPaths>
+    <header>
+        <rev>1.2</rev>
+        <created>Thursday, March 19, 2020 at 9:44:52 AM GMT</created>
+        <mstation>localhost</mstation>
+    </header>
+    <path name="Email-Admin" initial-delay="0s">
+        <target>
+            <name>rtc</name>
+            <autoNotify>on</autoNotify>
+            <command>javaEmail</command>
+        </target>
+        <target interval="0m">
+            <name>Admin</name>
+            <autoNotify>on</autoNotify>
+            <command>javaEmail</command>
+        </target>
+        <escalate delay="0s">
+            <target>
+                <name>rtc</name>
+                <autoNotify>on</autoNotify>
+                <command>javaEmail</command>
+            </target>
+            <target interval="0m">
+                <name>Admin</name>
+                <autoNotify>on</autoNotify>
+                <command>javaEmail</command>
+            </target>
+        </escalate>
+    </path>
+</destinationPaths>
