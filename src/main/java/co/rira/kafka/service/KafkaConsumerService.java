@@ -1,33 +1,44 @@
 package co.rira.kafka.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import co.rira.kafka.model.OpennmsModelProtos;
+import co.rira.kafka.utils.events.EventProcessor;
+import co.rira.kafka.utils.notification.NotificationHandler;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-
-@Service
+/**
+ * This service provides consuming
+ */
+@Service @Log4j2
 public class KafkaConsumerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerService.class);
-    private final NotificationService notificationService;
-
+    private final EventProcessor eventProcessor;
+    private final NotificationHandler notificationHandler;
 
     @Autowired
-    public KafkaConsumerService(NotificationService notificationService) {
-        this.notificationService = notificationService;
+    public KafkaConsumerService(EventProcessor eventProcessor, NotificationHandler notificationHandler) {
+        this.eventProcessor = eventProcessor;
+        this.notificationHandler = notificationHandler;
     }
 
+    /**
+     * Consumes as a record is published to 'events' topic and sends it as an alarm
+     * if it's related to a user.
+     *
+     * @param message event record text
+     */
     @KafkaListener(topics = "events", groupId = "kafkaConsumers")
-    public void consume(String message) {
-        logger.info("#### -> Consumed message -> {}", message);
-        try {
-            notificationService.notifyByEmail(message);
-        } catch (MessagingException e) {
-            logger.error("Error while sending email with content : {}", message, e);
+    public void consume(byte[] message) {
+        log.debug("####### Consumed message: \n {} \n #######", message);
+        OpennmsModelProtos.Event parsedEvent = eventProcessor.parseEvent(message);
+        if (parsedEvent!=null){
+            notifySubscribedUsers(parsedEvent);
         }
-        notificationService.notifyBySMS(message);
+    }
+
+    private void notifySubscribedUsers(OpennmsModelProtos.Event event) {
+        notificationHandler.notifySubscribers(event);
     }
 }

@@ -26,10 +26,8 @@ public class EmailService implements NotifierService {
 
     private final JavaMailSender mailSender;
     /**
-     * User email address (Can be set in /resources/application.properties)
+     * SMTP email address (Can be set in /resources/application.properties)
      */
-    @Value(value = "${app.email.address}")
-    private String notifiedEmailAddress;
     @Value(value = "${spring.mail.username}")
     private String emailSenderAddress;
 
@@ -46,6 +44,7 @@ public class EmailService implements NotifierService {
      */
     @Async
     public void notifyUser(String message) throws MessagingException {
+        /*
         log.debug("Started sending email to the : {}", notifiedEmailAddress);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
@@ -68,6 +67,7 @@ public class EmailService implements NotifierService {
         helper.setSubject("OpenNMS Alert");
         mailSender.send(mimeMessage);
         log.debug("An email was sent to the {} successfully", notifiedEmailAddress);
+         */
     }
 
     @Override
