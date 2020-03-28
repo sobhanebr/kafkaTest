@@ -10,12 +10,18 @@ import org.springframework.kafka.core.KafkaAdmin;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Kafka Topics Manager
+ */
 @Configuration
 public class KafkaTopicConfig {
 
     @Value(value = "${kafka.bootstrap.server}")
     private String bootstrapAddress;
 
+    /**
+     * Sets BootStrap Server
+     */
     @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
@@ -23,6 +29,9 @@ public class KafkaTopicConfig {
         return new KafkaAdmin(configs);
     }
 
+    /**
+     * @return "events" topic of Kafka
+     */
     @Bean
     public NewTopic eventsTopic() {
         return new NewTopic("events", 1, (short) 1);
