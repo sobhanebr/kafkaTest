@@ -1,7 +1,7 @@
 package co.rira.kafka.utils.notification;
 
+import co.rira.kafka.model.User;
 import co.rira.kafka.model.org.opennms.netmgt.config.notifications.Notification;
-import co.rira.kafka.model.org.opennms.netmgt.config.users.User;
 
 import javax.mail.MessagingException;
 import java.util.List;

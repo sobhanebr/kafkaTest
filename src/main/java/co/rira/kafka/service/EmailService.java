@@ -1,19 +1,17 @@
 package co.rira.kafka.service;
 
+import co.rira.kafka.model.User;
 import co.rira.kafka.model.org.opennms.netmgt.config.notifications.Notification;
-import co.rira.kafka.model.org.opennms.netmgt.config.users.User;
 import co.rira.kafka.utils.notification.NotifierService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import java.util.List;
 
 /**
