@@ -35,7 +35,7 @@ public class EmailService implements NotifierService {
     public EmailService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
-    
+
     /**
      * Sends a notification details to the user
      *
