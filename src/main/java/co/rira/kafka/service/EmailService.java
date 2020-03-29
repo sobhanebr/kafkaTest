@@ -40,18 +40,40 @@ public class EmailService implements NotifierService {
      * Sends a notification details to the user
      *
      * @param notification the notification
-     * @throws MessagingException if cannot send
      */
     @Override
     @Async
-    public void notifyUser(User targetUser, Notification notification) throws MessagingException {
+    public void notifyUser(User targetUser, Notification notification) {
+        if (targetUser == null || notification == null) return;
         String notifiedEmailAddress = targetUser.getEmailAddress();
-        log.debug("Started sending email to the : {}", notifiedEmailAddress);
+        log.debug("Started sending email to  [{}]", notifiedEmailAddress);
         MimeMessage mimeMessage = mailSender.createMimeMessage();
+        try {
+            configureHelper(mimeMessage, notifiedEmailAddress, notification);
+            mailSender.send(mimeMessage);
+            log.debug("A notification email was sent to the [{}] successfully", notifiedEmailAddress);
+        } catch (MessagingException e) {
+            log.error("Error while configuring MimeMessageHelper, ", e);
+        }
+    }
+
+    @Override
+    @Async
+    public void notifyUsers(List<User> notificationTargetList, Notification notification) {
+        notificationTargetList.forEach(user -> notifyUser(user, notification));
+    }
+
+    private void configureHelper(MimeMessage mimeMessage, String notifiedEmailAddress, Notification notification) throws MessagingException {
+        log.debug("Configuring MimeMessageHelper started.");
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
         helper.setFrom(emailSenderAddress);
         helper.setTo(notifiedEmailAddress);
-        String text = "<html>\n" +
+        helper.setText(generateEmailText(notification), true);
+        helper.setSubject(notification.getName());
+    }
+
+    private String generateEmailText(Notification notification) {
+        return "<html>\n" +
                 "\n" +
                 "<body dir=\"ltr\">\n" +
                 "    <div>\n" +
@@ -68,21 +90,5 @@ public class EmailService implements NotifierService {
                 "</body>\n" +
                 "\n" +
                 "</html>";
-        helper.setText(text, true);
-        helper.setSubject(notification.getName());
-        mailSender.send(mimeMessage);
-        log.debug("An email was sent to the {} successfully", notifiedEmailAddress);
-    }
-
-    @Override
-    @Async
-    public void notifyUsers(List<User> notificationTargetList, Notification notification) {
-        notificationTargetList.forEach(user -> {
-            try {
-                notifyUser(user, notification);
-            } catch (MessagingException e) {
-                log.error("Error while sending notification[{}] to user[{}]", notification, user, e);
-            }
-        });
     }
 }

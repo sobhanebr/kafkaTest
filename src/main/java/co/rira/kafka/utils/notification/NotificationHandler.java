@@ -8,6 +8,7 @@ import co.rira.kafka.model.User;
 import co.rira.kafka.model.org.opennms.netmgt.config.destinationPaths.Path;
 import co.rira.kafka.model.org.opennms.netmgt.config.destinationPaths.Target;
 import co.rira.kafka.model.org.opennms.netmgt.config.notifications.Notification;
+import co.rira.kafka.service.CallService;
 import co.rira.kafka.service.EmailService;
 import co.rira.kafka.utils.events.EventAccessController;
 import lombok.extern.log4j.Log4j2;
@@ -24,15 +25,17 @@ public class NotificationHandler {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final NotifierService emailService;
+    private final EmailService emailService;
+    private final CallService callService;
     private final DestinationPathRepository destinationPathRepository;
     private final EventAccessController accessController;
 
     @Autowired
-    public NotificationHandler(NotificationRepository notificationRepository, EmailService emailService, UserRepository userRepository, DestinationPathRepository destinationPathRepository, EventAccessController accessController) {
+    public NotificationHandler(NotificationRepository notificationRepository, EmailService emailService, UserRepository userRepository, CallService callService, DestinationPathRepository destinationPathRepository, EventAccessController accessController) {
         this.notificationRepository = notificationRepository;
         this.emailService = emailService;
         this.userRepository = userRepository;
+        this.callService = callService;
         this.destinationPathRepository = destinationPathRepository;
         this.accessController = accessController;
     }
@@ -40,9 +43,7 @@ public class NotificationHandler {
     public void notifySubscribers(OpennmsModelProtos.Event event) {
         if (notificationDisabled() || event == null) return;
         List<Notification> notificationList = getNotificationList(event);
-        for (Notification notification: notificationList){
-            emailService.notifyUsers(getNotificationTargetList(notification),notification);
-        }
+        notificationList.forEach(this::notifyTargetList);
     }
 
     private boolean notificationDisabled() {
@@ -63,8 +64,7 @@ public class NotificationHandler {
                 notification.getStatus().equalsIgnoreCase("on");
     }
 
-    private List<User> getNotificationTargetList(Notification notification) {
-        List<User> targetUsers = new ArrayList<>();
+    private void notifyTargetList(Notification notification) {
         String notificationDestinationPath = notification.getDestinationPath();
         Path desiredDestinationPath = destinationPathRepository.findDestinationPathByName(notificationDestinationPath);
         if (desiredDestinationPath != null) {
@@ -72,11 +72,30 @@ public class NotificationHandler {
             for (Target target : targetList) {
                 User user = userRepository.findUserById(target.getName());
                 if (accessController.hasAccess(user, notification)) {
-                    targetUsers.add(user);
+                    notifyUser(user, notification, target);
                 }
             }
         }
-        return targetUsers;
+    }
+
+    private void notifyUser(User user, Notification notification, Target target) {
+        List<String> targetCommands = target.getCommands();
+        for (String command : targetCommands) {
+            notifyUserOnCommand(user, notification, NotificationCommand.valueOf(command));
+        }
+    }
+
+    private void notifyUserOnCommand(User user, Notification notification, NotificationCommand command) {
+        switch (command) {
+            case JAVA_EMAIL:
+                emailService.notifyUser(user, notification);
+                break;
+            case CALL_HOME_PHONE:
+                callService.notifyUser(user, notification);
+                break;
+            default:
+                log.error("Unsupported command was found : {}", command);
+        }
     }
 
 

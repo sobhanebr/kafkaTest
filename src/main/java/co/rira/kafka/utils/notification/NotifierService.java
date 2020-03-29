@@ -11,7 +11,7 @@ import java.util.List;
  */
 public interface NotifierService {
 
-    void notifyUser(User targetUser, Notification notification) throws MessagingException;
+    void notifyUser(User targetUser, Notification notification);
 
     void notifyUsers(List<User> notificationTargetList, Notification notification);
 }
